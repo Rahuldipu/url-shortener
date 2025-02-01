@@ -3,14 +3,27 @@ import { v4 as uuidv4 } from "uuid";
 import Url from "../models/url.model";
 
 export const shortenUrl = async (req: Request, res: Response) => {
-  const { originalUrl, customAlias, expiryDate } = req.body;
-  const userId = (req as any).user.userId;
+  try {
+    const { originalUrl, customAlias } = req.body;
+    const userId = (req as any).user.userId;
 
-  const shortUrl = customAlias || uuidv4().slice(0, 8);
+    if (customAlias) {
+      const existingUrl = await Url.findOne({ shortUrl: customAlias });
+      if (existingUrl) {
+        return res.status(400).json({
+          message: "Custom alias already exists. Please provide a new alias.",
+        });
+      }
+    }
 
-  const newUrl = await Url.create({ originalUrl, shortUrl, userId, expiryDate });
+    const shortUrl = customAlias || uuidv4().slice(0, 8);
 
-  res.status(201).json({ shortUrl: `${process.env.BASE_URL}/${shortUrl}` });
+    const newUrl = await Url.create({ originalUrl, shortUrl, userId });
+
+    res.status(201).json({ shortUrl: `${process.env.BASE_URL}/${shortUrl}` });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const redirectUrl = async (req: Request, res: Response): Promise<any> => {
