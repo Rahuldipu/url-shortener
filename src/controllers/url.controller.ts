@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import Url from "../models/url.model";
 
-export const shortenUrl = async (req: Request, res: Response) => {
+export const shortenUrl = async (req: Request, res: Response): Promise<any> => {
   try {
     const { originalUrl, customAlias } = req.body;
     const userId = (req as any).user.userId;
